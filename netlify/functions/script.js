@@ -1,6 +1,5 @@
-const fetch = require('node-fetch'); // Import node-fetch if you're not on a browser
-
 exports.handler = async (event, context) => {
+  const fetch = (await import('node-fetch')).default;
   try {
     const response = await fetch('https://dummyjson.com/todos');
     const data = await response.json();
@@ -20,3 +19,4 @@ exports.handler = async (event, context) => {
     };
   }
 };
+
