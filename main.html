@@ -48,6 +48,14 @@
     </footer>
 
     <!-- Link to external JavaScript file -->
+     <script>
+        
+  fetch('https://deft-gaufre-62702a.netlify.app/.netlify/functions/script')
+    .then(response => response.json())  // Assuming your function returns JSON
+    .then(data => console.log(data))
+    .catch(error => console.error('Error:', error));
+        
+     </script>
     <script src="script.js"></script>
 </body>
 </html>
