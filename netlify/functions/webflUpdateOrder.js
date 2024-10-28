@@ -10,7 +10,7 @@ exports.handler = async function(event, context) {
     // Set up headers with CORS and response settings
     const headers = {
         'Access-Control-Allow-Methods': 'PATCH, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Content-Type': 'application/json',
     };
 
@@ -39,7 +39,7 @@ exports.handler = async function(event, context) {
     try {
         // Parse itemId and newOrderValue from request body
         const { itemId, newOrderValue } = JSON.parse(event.body);
-
+        
         if (!itemId || newOrderValue === undefined) {
             return {
                 statusCode: 400,
@@ -48,45 +48,48 @@ exports.handler = async function(event, context) {
             };
         }
 
-        // Construct the API endpoint for updating the live item
-        const url = `https://api.webflow.com/v2/collections/${collectionId}/items/${itemId}/live`;
+        // Construct the API endpoint for updating the item
+        const url = `https://api.webflow.com/v2/collections/${collectionId}/items/${itemId}`;
 
-        // Make a PATCH request to update the item in the live collection
+        // Make a PATCH request to update the item
         const response = await fetch(url, {
             method: 'PATCH',
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
-                'accept-version': '2.0.0',
+                'accept': 'application/json',
             },
             body: JSON.stringify({
-                "id": itemId,  // Use the item ID
-                "fieldData": {
-                    "fieldId": newOrderValue,  // Use the field ID here
-                    "_archived": false,
-                    "_draft": false,
-                },
-                "isArchived": false,
-                "isDraft": false,
+                fields: {
+                    "order": newOrderValue  // Using "order" as the specific field key
+                }
             }),
         });
 
         if (!response.ok) {
-            throw new Error(`Error updating item: ${response.status} - ${response.statusText}`);
+            const errorData = await response.text();
+            throw new Error(`Error updating item: ${response.status} - ${errorData}`);
         }
 
         const updatedData = await response.json();
-
+        
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({ message: 'Order incremented successfully', data: updatedData }),
+            body: JSON.stringify({ 
+                message: 'Order updated successfully', 
+                data: updatedData 
+            }),
         };
     } catch (error) {
+        console.error('Error details:', error);
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ error: error.message }),
+            body: JSON.stringify({ 
+                error: error.message,
+                details: 'Failed to update item in Webflow'
+            }),
         };
     }
 };
