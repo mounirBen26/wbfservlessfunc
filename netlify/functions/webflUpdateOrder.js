@@ -37,8 +37,14 @@ exports.handler = async function(event, context) {
     }
 
     try {
+        // Log the incoming request body
+        console.log('Incoming request body:', event.body);
+        
         // Parse itemId and newOrderValue from request body
         const { itemId, newOrderValue } = JSON.parse(event.body);
+        
+        // Log parsed values
+        console.log('Parsed values:', { itemId, newOrderValue, collectionId });
         
         if (!itemId || newOrderValue === undefined) {
             return {
@@ -50,6 +56,15 @@ exports.handler = async function(event, context) {
 
         // Construct the API endpoint for updating the item
         const url = `https://api.webflow.com/v2/collections/${collectionId}/items/${itemId}`;
+        
+        // Log the request details
+        console.log('Making request to:', url);
+        const requestBody = {
+            fields: {
+                "order": parseInt(newOrderValue)  // Ensure number type
+            }
+        };
+        console.log('Request body:', JSON.stringify(requestBody));
 
         // Make a PATCH request to update the item
         const response = await fetch(url, {
@@ -59,19 +74,32 @@ exports.handler = async function(event, context) {
                 'Content-Type': 'application/json',
                 'accept': 'application/json',
             },
-            body: JSON.stringify({
-                fields: {
-                    "order": newOrderValue  // Using "order" as the specific field key
-                }
-            }),
+            body: JSON.stringify(requestBody),
         });
 
+        // Log the response status and headers
+        console.log('Response status:', response.status);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
         if (!response.ok) {
-            const errorData = await response.text();
-            throw new Error(`Error updating item: ${response.status} - ${errorData}`);
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            
+            return {
+                statusCode: response.status,
+                headers,
+                body: JSON.stringify({ 
+                    error: 'Failed to update item',
+                    status: response.status,
+                    details: errorText,
+                    requestUrl: url,
+                    requestBody: requestBody
+                })
+            };
         }
 
         const updatedData = await response.json();
+        console.log('Success response:', updatedData);
         
         return {
             statusCode: 200,
@@ -82,13 +110,19 @@ exports.handler = async function(event, context) {
             }),
         };
     } catch (error) {
-        console.error('Error details:', error);
+        console.error('Detailed error:', {
+            message: error.message,
+            stack: error.stack,
+            event: event
+        });
+        
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({ 
-                error: error.message,
-                details: 'Failed to update item in Webflow'
+                error: 'Server error',
+                details: error.message,
+                stack: error.stack
             }),
         };
     }
