@@ -1,5 +1,4 @@
 // netlify/functions/webflow-update-order.js
-
 exports.handler = async function(event, context) {
     const fetch = (await import('node-fetch')).default;
     const apiKey = process.env.WEBFLOW_API_KEY;
@@ -42,6 +41,10 @@ exports.handler = async function(event, context) {
         // Parse itemId and newOrderValue from request body
         const { itemId, newOrderValue } = JSON.parse(event.body);
 
+        // Debugging logs
+        console.log("Received itemId:", itemId);
+        console.log("Received newOrderValue:", newOrderValue);
+
         if (!itemId || newOrderValue === undefined) {
             return {
                 statusCode: 400,
@@ -82,6 +85,7 @@ exports.handler = async function(event, context) {
             body: JSON.stringify({ message: 'Order incremented successfully', data: updatedData }),
         };
     } catch (error) {
+        console.error("Error in handler:", error);
         return {
             statusCode: 500,
             headers,
@@ -89,3 +93,4 @@ exports.handler = async function(event, context) {
         };
     }
 };
+
