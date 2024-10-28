@@ -61,7 +61,7 @@ exports.handler = async function(event, context) {
 
         const requestBody = {
             fields: {
-                order: newOrderValue  // Make sure the field name matches exactly
+                Order: newOrderValue  // Make sure the field name matches exactly
             }
         };
 
