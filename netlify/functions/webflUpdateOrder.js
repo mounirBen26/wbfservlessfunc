@@ -65,7 +65,7 @@ exports.handler = async function(event, context) {
                 'accept-version': '2.0.0',
             },
             body: JSON.stringify({
-                fieldData: {
+                fields: {
                     order: newOrderValue,  // Update `order` with incremented value
                     _archived: false,
                     _draft: false,
