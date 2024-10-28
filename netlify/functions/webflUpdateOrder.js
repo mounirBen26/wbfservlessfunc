@@ -54,11 +54,18 @@ exports.handler = async function(event, context) {
         // Construct the API endpoint for updating the item
         const url = `https://api.webflow.com/v2/collections/${collectionId}/items/${itemId}`;
 
+        // Log request details for debugging
+        console.log('Request URL:', url);
+        console.log('Current Order:', currentOrder);
+        console.log('New Order Value:', newOrderValue);
+
         const requestBody = {
             fields: {
-                "order": newOrderValue
+                order: newOrderValue  // Make sure the field name matches exactly
             }
         };
+
+        console.log('Request Body:', JSON.stringify(requestBody, null, 2));
 
         // Make a PATCH request to update the item
         const response = await fetch(url, {
@@ -66,14 +73,17 @@ exports.handler = async function(event, context) {
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json',
-                'accept': 'application/json',
+                'accept': 'application/json'
             },
-            body: JSON.stringify(requestBody),
+            body: JSON.stringify(requestBody)
         });
 
+        // Get the response text first for debugging
+        const responseText = await response.text();
+        console.log('Raw Response:', responseText);
+
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
+            console.error('Error response:', responseText);
             
             return {
                 statusCode: response.status,
@@ -81,13 +91,22 @@ exports.handler = async function(event, context) {
                 body: JSON.stringify({ 
                     error: 'Failed to update item',
                     status: response.status,
-                    details: errorText
+                    details: responseText
                 })
             };
         }
 
-        const updatedData = await response.json();
+        // Parse the response text as JSON
+        const updatedData = JSON.parse(responseText);
         
+        // Verify the update
+        if (updatedData.fieldData.order !== newOrderValue) {
+            console.warn('Order field not updated as expected:', {
+                expected: newOrderValue,
+                actual: updatedData.fieldData.order
+            });
+        }
+
         return {
             statusCode: 200,
             headers,
@@ -95,17 +114,23 @@ exports.handler = async function(event, context) {
                 message: 'Order updated successfully', 
                 data: updatedData,
                 previousOrder: currentOrder,
-                newOrder: newOrderValue
+                newOrder: newOrderValue,
+                requestBody: requestBody // Include for debugging
             }),
         };
     } catch (error) {
-        console.error('Error details:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack
+        });
+        
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({ 
                 error: 'Server error',
-                details: error.message
+                details: error.message,
+                stack: error.stack
             }),
         };
     }
