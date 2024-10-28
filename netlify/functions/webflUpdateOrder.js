@@ -56,9 +56,10 @@ exports.handler = async function (event, context) {
     // Prepare the payload with fields
     const payload = JSON.stringify({
       fields: {
-        order: newOrderValue, // Updating the 'order' field
-        _archived: false,
-        _draft: false,
+        "id":itemId,
+        "order": newOrderValue, // Updating the 'order' field
+        "_archived": false,
+        "_draft": false,
       },
     });
 
