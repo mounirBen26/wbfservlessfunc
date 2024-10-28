@@ -7,12 +7,22 @@ exports.handler = async function(event, context) {
   const collectionId = process.env.collectionId;
   const url = `https://api.webflow.com/v2/collections/${collectionId}/items`;
 
-  // CORS headers to allow requests from your Webflow site
+  // Define allowed origins
+  const allowedOrigins = ['https://jimag.webflow.io', 'https://www.ji-mag.com']; // Add any additional allowed origins here
+
+  // CORS headers
   const headers = {
-    'Access-Control-Allow-Origin': 'https://jimag.webflow.io', // Replace with your Webflow site URL
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
+
+  // Check if the request origin is allowed
+  const origin = event.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+  } else {
+    headers['Access-Control-Allow-Origin'] = allowedOrigins[0]; // Default to first allowed origin or use '*' to allow all (not recommended in production)
+  }
 
   // Handle preflight OPTIONS request for CORS
   if (event.httpMethod === 'OPTIONS') {
@@ -51,3 +61,4 @@ exports.handler = async function(event, context) {
     };
   }
 };
+
