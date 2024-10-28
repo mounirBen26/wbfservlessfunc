@@ -1,8 +1,7 @@
-// netlify/functions/webflow-update-order.js
 exports.handler = async function(event, context) {
     const fetch = (await import('node-fetch')).default;
     const apiKey = process.env.WEBFLOW_API_KEY;
-    const collectionId = process.env.collectionId;
+    const collectionId = process.env.WEBFLOW_COLLECTION_ID;
 
     // Define allowed origins for CORS
     const allowedOrigins = ['https://jimag.webflow.io', 'https://www.ji-mag.com'];
@@ -41,10 +40,6 @@ exports.handler = async function(event, context) {
         // Parse itemId and newOrderValue from request body
         const { itemId, newOrderValue } = JSON.parse(event.body);
 
-        // Debugging logs
-        console.log("Received itemId:", itemId);
-        console.log("Received newOrderValue:", newOrderValue);
-
         if (!itemId || newOrderValue === undefined) {
             return {
                 statusCode: 400,
@@ -53,10 +48,10 @@ exports.handler = async function(event, context) {
             };
         }
 
-        // Construct the API endpoint for updating the item
-        const url = `https://api.webflow.com/v2/collections/${collectionId}/items/${itemId}`;
+        // Construct the API endpoint for updating the live item
+        const url = `https://api.webflow.com/v2/collections/${collectionId}/items/${itemId}/live`;
 
-        // Make a PATCH request to update the `order` field
+        // Make a PATCH request to update the item in the live collection
         const response = await fetch(url, {
             method: 'PATCH',
             headers: {
@@ -65,11 +60,16 @@ exports.handler = async function(event, context) {
                 'accept-version': '2.0.0',
             },
             body: JSON.stringify({
-                fields: {
-                    order: newOrderValue,  // Update `order` with incremented value
-                    _archived: false,
-                    _draft: false,
-                }
+                "id": itemId,  // Use the item ID
+                // Include necessary fields for the live update
+                "fieldData": {
+                    "order": newOrderValue,  // Update `order` with incremented value
+                    "_archived": false,
+                    "_draft": false,
+                },
+                // Optionally include other fields as needed
+                "isArchived": false,
+                "isDraft": false,
             }),
         });
 
@@ -85,7 +85,6 @@ exports.handler = async function(event, context) {
             body: JSON.stringify({ message: 'Order incremented successfully', data: updatedData }),
         };
     } catch (error) {
-        console.error("Error in handler:", error);
         return {
             statusCode: 500,
             headers,
@@ -93,4 +92,3 @@ exports.handler = async function(event, context) {
         };
     }
 };
-
