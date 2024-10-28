@@ -48,10 +48,10 @@ exports.handler = async function(event, context) {
             };
         }
 
-        // Construct the API endpoint for updating the live item
-        const url = `https://api.webflow.com/v2/collections/${collectionId}/items/${itemId}/live`;
+        // Construct the API endpoint for updating the item
+        const url = `https://api.webflow.com/v2/collections/${collectionId}/items/${itemId}`;
 
-        // Make a PATCH request to update the item in the live collection
+        // Make a PATCH request to update the item in the collection
         const response = await fetch(url, {
             method: 'PATCH',
             headers: {
@@ -60,21 +60,17 @@ exports.handler = async function(event, context) {
                 'accept-version': '2.0.0',
             },
             body: JSON.stringify({
-                "id": itemId,  // Use the item ID
-                // Include necessary fields for the live update
-                "fieldData": {
-                    "order": newOrderValue,  // Update `order` with incremented value
+                fields: {
+                    "order": newOrderValue,  // Update the order field
                     "_archived": false,
                     "_draft": false,
                 },
-                // Optionally include other fields as needed
-                "isArchived": false,
-                "isDraft": false,
             }),
         });
 
         if (!response.ok) {
-            throw new Error(`Error updating item: ${response.status} - ${response.statusText}`);
+            const errorDetails = await response.text(); // Get response body for debugging
+            throw new Error(`Error updating item: ${response.status} - ${response.statusText} - ${errorDetails}`);
         }
 
         const updatedData = await response.json();
