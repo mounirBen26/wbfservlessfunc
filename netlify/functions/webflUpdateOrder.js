@@ -3,7 +3,7 @@
 exports.handler = async function(event, context) {
     const fetch = (await import('node-fetch')).default;
     const apiKey = process.env.WEBFLOW_API_KEY;
-    const collectionId = process.env.WEBFLOW_COLLECTION_ID;
+    const collectionId = process.env.collectionId;
 
     // Define allowed origins for CORS
     const allowedOrigins = ['https://jimag.webflow.io', 'https://www.ji-mag.com'];
