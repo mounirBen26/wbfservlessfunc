@@ -37,34 +37,28 @@ exports.handler = async function(event, context) {
     }
 
     try {
-        // Log the incoming request body
-        console.log('Incoming request body:', event.body);
+        // Parse itemId and currentOrder from request body
+        const { itemId, currentOrder } = JSON.parse(event.body);
         
-        // Parse itemId and newOrderValue from request body
-        const { itemId, newOrderValue } = JSON.parse(event.body);
-        
-        // Log parsed values
-        console.log('Parsed values:', { itemId, newOrderValue, collectionId });
-        
-        if (!itemId || newOrderValue === undefined) {
+        if (!itemId || currentOrder === undefined) {
             return {
                 statusCode: 400,
                 headers,
-                body: JSON.stringify({ message: 'Missing itemId or newOrderValue in request body.' }),
+                body: JSON.stringify({ message: 'Missing itemId or currentOrder in request body.' }),
             };
         }
 
+        // Calculate new order value by incrementing current value
+        const newOrderValue = parseInt(currentOrder) + 1;
+
         // Construct the API endpoint for updating the item
         const url = `https://api.webflow.com/v2/collections/${collectionId}/items/${itemId}`;
-        
-        // Log the request details
-        console.log('Making request to:', url);
+
         const requestBody = {
             fields: {
-                "order": parseInt(newOrderValue)  // Ensure number type
+                "order": newOrderValue
             }
         };
-        console.log('Request body:', JSON.stringify(requestBody));
 
         // Make a PATCH request to update the item
         const response = await fetch(url, {
@@ -77,10 +71,6 @@ exports.handler = async function(event, context) {
             body: JSON.stringify(requestBody),
         });
 
-        // Log the response status and headers
-        console.log('Response status:', response.status);
-        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Error response:', errorText);
@@ -91,38 +81,31 @@ exports.handler = async function(event, context) {
                 body: JSON.stringify({ 
                     error: 'Failed to update item',
                     status: response.status,
-                    details: errorText,
-                    requestUrl: url,
-                    requestBody: requestBody
+                    details: errorText
                 })
             };
         }
 
         const updatedData = await response.json();
-        console.log('Success response:', updatedData);
         
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({ 
                 message: 'Order updated successfully', 
-                data: updatedData 
+                data: updatedData,
+                previousOrder: currentOrder,
+                newOrder: newOrderValue
             }),
         };
     } catch (error) {
-        console.error('Detailed error:', {
-            message: error.message,
-            stack: error.stack,
-            event: event
-        });
-        
+        console.error('Error details:', error);
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({ 
                 error: 'Server error',
-                details: error.message,
-                stack: error.stack
+                details: error.message
             }),
         };
     }
