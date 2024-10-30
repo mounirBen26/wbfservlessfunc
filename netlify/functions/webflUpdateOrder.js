@@ -30,11 +30,13 @@ exports.handler = async (event, context) => {
     const responseData = await response.json();
     return {
       statusCode: response.status,
+      headers: { "Access-Control-Allow-Origin": "*" }, 
       body: JSON.stringify(responseData)
     };
   } catch (error) {
     return {
       statusCode: 500,
+      headers: { "Access-Control-Allow-Origin": "*" }, 
       body: JSON.stringify({ error: "Failed to update Webflow data", details: error.message })
     };
   }
