@@ -16,7 +16,7 @@ exports.handler = async (event, context) => {
 
   const data = {
     "fieldData": {
-      "order": 4
+      "order": 5
     },
     "isDraft": false
   };
