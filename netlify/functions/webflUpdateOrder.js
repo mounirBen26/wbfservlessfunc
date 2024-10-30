@@ -1,7 +1,8 @@
 // Create a Netlify serverless function
-const fetch = require("node-fetch");
+
 
 exports.handler = async (event, context) => {
+  const fetch = (await import('node-fetch')).default;
   const itemId = "6720ef1d6195bb3d6139544a";
   const collectionId = "6553e71600ad68934cb80cb0";
   const token = "13ff929739596aa0d9c8e160be497ee4822f93833420ea36d998ce8c1bf2c964";
