@@ -15,7 +15,7 @@ exports.handler = async (event, context) => {
   const { id, order } = JSON.parse(event.body);  // Extract `id` and `order` from the request body
   const itemId = id;
   const newOrder = order + 1;  // Increment the order by 1
-
+  console.log("+++++",order,newOrder)
   const url = `https://api.webflow.com/v2/collections/${collectionId}/items/${itemId}`;
   const headers = {
     "Authorization": `Bearer ${token}`,
