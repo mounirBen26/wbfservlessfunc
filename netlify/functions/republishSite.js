@@ -1,13 +1,12 @@
 // netlify/functions/republishSite.js
-
 exports.handler = async function(event, context) {
     const fetch = (await import('node-fetch')).default;
     const apiKey = process.env.WEBFLOW_API_KEY;
     const siteId = process.env.WEBFLOW_SITE_ID; // The ID of your Webflow site
-    const url = `https://api.webflow.com/v2/sites/${siteId}/publish`;
+    const url = `https://api.webflow.com/sites/${siteId}/publish`; // Note: Using /v1 if required
   
     // Define allowed origins
-    const allowedOrigins = ['https://jimag.webflow.io', 'https://www.ji-mag.com']; // Add any additional allowed origins here
+    const allowedOrigins = ['https://jimag.webflow.io', 'https://www.ji-mag.com'];
   
     // CORS headers
     const headers = {
@@ -20,7 +19,7 @@ exports.handler = async function(event, context) {
     if (allowedOrigins.includes(origin)) {
       headers['Access-Control-Allow-Origin'] = origin;
     } else {
-      headers['Access-Control-Allow-Origin'] = allowedOrigins[0]; // Default to first allowed origin or use '*' (not recommended for production)
+      headers['Access-Control-Allow-Origin'] = allowedOrigins[0];
     }
   
     // Handle preflight OPTIONS request for CORS
@@ -49,27 +48,27 @@ exports.handler = async function(event, context) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          domains: ['www.ji-mag.com'], // Add any other domains for your Webflow site here
+          domains: ['www.ji-mag.com'], // Ensure this domain is in Webflow's site settings
         }),
       });
   
+      const responseData = await response.json();
       if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        // Detailed error logging for failed requests
+        throw new Error(`Webflow API Error ${response.status}: ${responseData.msg || response.statusText}`);
       }
-  
-      const data = await response.json();
   
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({ message: 'Site republished successfully', data }),
+        body: JSON.stringify({ message: 'Site republished successfully', data: responseData }),
       };
     } catch (error) {
+      // Log error message with specific response details if available
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: error.message }),
+        body: JSON.stringify({ error: error.message || 'An unexpected error occurred' }),
       };
     }
-  };
-  
+};
